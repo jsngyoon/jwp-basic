@@ -10,14 +10,14 @@ import java.util.List;
 import core.jdbc.ConnectionManager;
 import next.model.User;
 
-public abstract class JdbcTemplate {
-    public void executeUpdate(String sql) throws SQLException {
+public class JdbcTemplate {
+    public void executeUpdate(String sql, PreparedStatementSetter pss) throws SQLException {
         Connection con = null;
         PreparedStatement pstmt = null;
         try {
             con = ConnectionManager.getConnection();
             pstmt = con.prepareStatement(sql);
-            setParameters(pstmt);
+            pss.setParameters(pstmt);
 
             pstmt.executeUpdate();
         } finally {
@@ -31,16 +31,16 @@ public abstract class JdbcTemplate {
         }
     }
 
-    public Object executeQuery(String sql) throws SQLException {
+    public Object executeQuery(String sql, RowMapper rm, PreparedStatementSetter pss) throws SQLException {
     	Connection con = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;        
         try {
             con = ConnectionManager.getConnection();
             pstmt = con.prepareStatement(sql);
-            setParameters(pstmt);
+            pss.setParameters(pstmt);
             rs = pstmt.executeQuery();  
-            return rowMapper(rs);
+            return rm.rowMapper(rs);
         } finally {
             if (rs != null) {
                 rs.close();
@@ -53,8 +53,4 @@ public abstract class JdbcTemplate {
             }
         }
     }
-    
-	public abstract void setParameters(PreparedStatement pstmt) throws SQLException;
-	
-	public abstract Object rowMapper(ResultSet rs) throws SQLException;
 }
