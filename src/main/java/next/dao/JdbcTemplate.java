@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import core.jdbc.ConnectionManager;
 
 public class JdbcTemplate {
-    public void executeUpdate(String sql, PreparedStatementSetter pss) throws SQLException {
+    public void executeUpdate(String sql, PreparedStatementSetter pss) {
         Connection con = null;
         PreparedStatement pstmt = null;
         try {
@@ -16,18 +16,23 @@ public class JdbcTemplate {
             pss.setParameters(pstmt);
 
             pstmt.executeUpdate();
+        } catch(SQLException e) {
+        	throw new DataAccessException(e);
         } finally {
-            if (pstmt != null) {
-                pstmt.close();
-            }
-
-            if (con != null) {
-                con.close();
-            }
+        	try {
+	            if (pstmt != null) {
+	                pstmt.close();
+	            }
+	            if (con != null) {
+	                con.close();
+	            }
+        	} catch(SQLException e) {
+        		throw new DataAccessException(e);
+        	}
         }
     }
     
-    public void executeUpdate(String sql, Object... para) throws SQLException {
+    public void executeUpdate(String sql, Object... para) {
     	executeUpdate(sql, createPreparedStatementSetter(para));
     }
 
@@ -43,7 +48,7 @@ public class JdbcTemplate {
 		return pss;
 	}
 
-    public <T> T executeQuery(String sql, RowMapper<T> rm, PreparedStatementSetter pss) throws SQLException {
+    public <T> T executeQuery(String sql, RowMapper<T> rm, PreparedStatementSetter pss) {
     	Connection con = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;        
@@ -53,20 +58,26 @@ public class JdbcTemplate {
             pss.setParameters(pstmt);
             rs = pstmt.executeQuery();  
             return rm.rowMapper(rs);
+        } catch(SQLException e) {
+        	throw new DataAccessException(e);
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (pstmt != null) {
-                pstmt.close();
-            }
-            if (con != null) {
-                con.close();
-            }
+        	try {
+	            if (rs != null) {
+	                rs.close();
+	            }
+	            if (pstmt != null) {
+	                pstmt.close();
+	            }
+	            if (con != null) {
+	                con.close();
+	            }
+        	} catch(SQLException e) {
+        		throw new DataAccessException(e);
+        	}
         }
     }
     
-    public <T> T executeQuery(String sql, RowMapper<T> rm, Object... para) throws SQLException {
+    public <T> T executeQuery(String sql, RowMapper<T> rm, Object... para) {
     	return executeQuery(sql, rm, createPreparedStatementSetter(para));
     }
 }
